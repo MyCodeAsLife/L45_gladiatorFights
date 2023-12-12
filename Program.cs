@@ -18,9 +18,12 @@ namespace L45_gladiatorFights
             const int CommantExit = 6;
 
             List<Fighter> fighters = new List<Fighter>();
+
             int menuNumber;
             int delimeterLenght = 50;
+
             char delimeter = '=';
+
             bool isOpen = true;
 
             while (isOpen)
