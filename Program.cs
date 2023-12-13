@@ -54,7 +54,7 @@ namespace L45_gladiatorFights
                         case CommantPaladin:
 
                         case CommantArcher:
-                            fighters.Add(CreateFighters((TypeFighters)menuNumber));
+                            fighters.Add(Fighter.CreateFighter((TypeFighters)menuNumber));
                             break;
 
                         case CommantExit:
@@ -62,13 +62,13 @@ namespace L45_gladiatorFights
                             continue;
 
                         default:
-                            ShowError();
+                            Error.Show();
                             break;
                     }
                 }
                 else
                 {
-                    ShowError();
+                    Error.Show();
                 }
 
                 Console.WriteLine("Для возврашения в меню, нажмите любую клавишу...");
@@ -112,36 +112,13 @@ namespace L45_gladiatorFights
                 }
             }
         }
+    }
 
-        static void ShowError()
+    class Error
+    {
+        public static void Show()
         {
             Console.WriteLine("\nВы ввели некорректное значение.");
-        }
-
-        static Fighter CreateFighters(TypeFighters type)
-        {
-            Console.Write("Введите имя бойца: ");
-            string name = Console.ReadLine();
-
-            switch (type)
-            {
-                case TypeFighters.Mage:
-                    return new Mage(name, type, 200, 35, 0, 40);
-
-                case TypeFighters.Warior:
-                    return new Warior(name, type, 350, 15, 15);
-
-                case TypeFighters.Barbarian:
-                    return new Barbarian(name, type, 400, 25, 7, 30);
-
-                case TypeFighters.Paladin:
-                    return new Paladin(name, type, 300, 20, 10, 35);
-
-                case TypeFighters.Archer:
-                    return new Archer(name, type, 275, 27, 5, 25);
-                default:
-                    return null;
-            }
         }
     }
 
@@ -177,6 +154,32 @@ namespace L45_gladiatorFights
             get
             {
                 return _currentHelth;
+            }
+        }
+
+        public static Fighter CreateFighter(TypeFighters type)
+        {
+            Console.Write("Введите имя бойца: ");
+            string name = Console.ReadLine();
+
+            switch (type)
+            {
+                case TypeFighters.Mage:
+                    return new Mage(name, type, 200, 35, 0, 40);
+
+                case TypeFighters.Warior:
+                    return new Warior(name, type, 350, 15, 15);
+
+                case TypeFighters.Barbarian:
+                    return new Barbarian(name, type, 400, 25, 7, 30);
+
+                case TypeFighters.Paladin:
+                    return new Paladin(name, type, 300, 20, 10, 35);
+
+                case TypeFighters.Archer:
+                    return new Archer(name, type, 275, 27, 5, 25);
+                default:
+                    return null;
             }
         }
 
