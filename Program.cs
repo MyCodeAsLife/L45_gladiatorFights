@@ -13,37 +13,26 @@ namespace L45_gladiatorFights
         }
     }
 
-    static class Error
-    {
-        public static void Show()
-        {
-            Console.WriteLine("\nВы ввели некорректное значение.");
-        }
-    }
-
-    static class FormatOutput
-    {
-        static FormatOutput()
-        {
-            DelimeterLenght = 50;
-            Delimeter = '=';
-        }
-
-        public static int DelimeterLenght { get; private set; }
-        public static char Delimeter { get; private set; }
-    }
-
     class Arena
     {
-        private const int CommantSelectMage = (int)TypeFighters.Mage;
-        private const int CommantSelectWarrior = (int)TypeFighters.Warior;
-        private const int CommantSelectBarbarian = (int)TypeFighters.Barbarian;
-        private const int CommantSelectPaladin = (int)TypeFighters.Paladin;
-        private const int CommantSelectArcher = (int)TypeFighters.Archer;
-        private const int CommandStartFight = 6;
-        private const int CommantExit = 7;
+        private const int CommandSelectFighters = 1;
+        private const int CommandStartFight = 2;
+        private const int CommandExit = 3;
 
-        List<Fighter> _fighters = new List<Fighter>();
+        private int _delimeterLenght = 50;
+        private char _delimeter = '=';
+
+        private List<FighterCreator> _listFighters;
+        private List<Fighter> _selectedFighters = new List<Fighter>();
+
+        public Arena()
+        {
+            _listFighters = new List<FighterCreator> { new FighterCreatorMage(),
+                                                       new FighterCreatorWarior(),
+                                                       new FighterCreatorBarbarian(),
+                                                       new FighterCreatorPaladin(),
+                                                       new FighterCreatorArcher()};
+        }
 
         public void Run()
         {
@@ -60,42 +49,26 @@ namespace L45_gladiatorFights
 
                     switch (menuNumber)
                     {
-                        case CommantSelectMage:
-                            SelectFighter(TypeFighters.Mage);
-                            break;
-
-                        case CommantSelectWarrior:
-                            SelectFighter(TypeFighters.Warior);
-                            break;
-
-                        case CommantSelectBarbarian:
-                            SelectFighter(TypeFighters.Barbarian);
-                            break;
-
-                        case CommantSelectPaladin:
-                            SelectFighter(TypeFighters.Paladin);
-                            break;
-
-                        case CommantSelectArcher:
-                            SelectFighter(TypeFighters.Archer);
+                        case CommandSelectFighters:
+                            SelectFighter();
                             break;
 
                         case CommandStartFight:
                             Fight();
                             break;
 
-                        case CommantExit:
+                        case CommandExit:
                             isOpen = false;
                             continue;
 
                         default:
-                            Error.Show();
+                            ShowError();
                             break;
                     }
                 }
                 else
                 {
-                    Error.Show();
+                    ShowError();
                 }
 
                 Console.WriteLine("Для возврашения в меню, нажмите любую клавишу...");
@@ -103,63 +76,54 @@ namespace L45_gladiatorFights
             }
         }
 
-        private void SelectFighter(TypeFighters type)
+        private void SelectFighter()                // Добавить выбор сразу 2х бойцов
         {
-            if (_fighters.Count < 2)
-            {
-                _fighters.Add(CreateFighter(type));
-            }
-            else if (_fighters.Count > 1)
-            {
-                Console.Clear();
-                Console.WriteLine($"Какого бойца вы хотите заменить?\n1 - {_fighters[0].TypeFighters}\n2 - {_fighters[1].TypeFighters}");
+            Console.Clear();
 
-                if (int.TryParse(Console.ReadLine(), out int numFighter))
+            if (_selectedFighters.Count < 2)
+            {
+                for (int i = 0; i < _listFighters.Count; i++)
+                    Console.WriteLine($"{i + 1} - {_listFighters[i].GetTypeName()}");
+
+                Console.Write("Ведите номер бойца: ");
+
+                if (int.TryParse(Console.ReadLine(), out int fighterNumber))
                 {
-                    if (numFighter < 3 && numFighter > 0)
-                    {
-                        numFighter--;
-                        _fighters[numFighter] = CreateFighter(type);
-                    }
+                    fighterNumber--;
+
+                    if (fighterNumber < _listFighters.Count || fighterNumber >= 0)
+                        _selectedFighters.Add(_listFighters[fighterNumber].Create());
                     else
-                    {
-                        Error.Show();
-                    }
+                        ShowError();
                 }
                 else
                 {
-                    Error.Show();
+                    ShowError();
                 }
             }
-        }
-
-        private Fighter CreateFighter(TypeFighters type)
-        {
-            switch (type)
+            else if (_selectedFighters.Count > 1)
             {
-                case TypeFighters.Mage:
-                    return new Warior(type, 350, 15, 15);
+                Console.WriteLine($"Какого бойца вы хотите заменить?\n1 - {_selectedFighters[0].TypeFighters}\n2 - {_selectedFighters[1].TypeFighters}");
 
-                case TypeFighters.Warior:
-                    return new Mage(type, 200, 35, 0, 40);
+                if (int.TryParse(Console.ReadLine(), out int fighterNumber))
+                {
+                    fighterNumber--;
 
-                case TypeFighters.Barbarian:
-                    return new Barbarian(type, 400, 25, 7, 30);
-
-                case TypeFighters.Paladin:
-                    return new Paladin(type, 300, 20, 10, 35);
-
-                case TypeFighters.Archer:
-                    return new Archer(type, 275, 27, 5, 25);
-
-                default:
-                    return null;
+                    if (fighterNumber < 2 && fighterNumber >= 0)
+                        _selectedFighters[fighterNumber] = _listFighters[fighterNumber].Create();
+                    else
+                        ShowError();
+                }
+                else
+                {
+                    ShowError();
+                }
             }
         }
 
         private void Fight()
         {
-            if (_fighters.Count == 2)
+            if (_selectedFighters.Count == 2)
             {
                 int numberOfRound = 1;
                 bool isFight = true;
@@ -168,33 +132,22 @@ namespace L45_gladiatorFights
 
                 while (isFight)
                 {
-                    Console.WriteLine(new string(FormatOutput.Delimeter, FormatOutput.DelimeterLenght) + $"\nРаунд №{numberOfRound}.");
-                    Console.WriteLine($"{_fighters[0].TypeFighters} - Здоровье: {_fighters[0].CurrentHelth}\t" +
-                                      $"{_fighters[1].TypeFighters} - Здоровье: {_fighters[1].CurrentHelth}");
+                    Console.WriteLine(new string(_delimeter, _delimeterLenght) + $"\nРаунд №{numberOfRound}.");
+                    Console.WriteLine($"{_selectedFighters[0].TypeFighters} - Здоровье: {_selectedFighters[0].CurrentHelth}\t" +
+                                      $"{_selectedFighters[1].TypeFighters} - Здоровье: {_selectedFighters[1].CurrentHelth}");
 
-                    _fighters[0].Attack(_fighters[1]);
-                    _fighters[1].Attack(_fighters[0]);
+                    _selectedFighters[0].Attack(_selectedFighters[1]);
+                    _selectedFighters[1].Attack(_selectedFighters[0]);
 
                     numberOfRound++;
 
-                    if (_fighters[0].CurrentHelth <= 0 || _fighters[1].CurrentHelth <= 0)
-                    {
+                    if (_selectedFighters[0].CurrentHelth <= 0 || _selectedFighters[1].CurrentHelth <= 0)
                         isFight = false;
-
-                        Console.WriteLine(new string(FormatOutput.Delimeter, FormatOutput.DelimeterLenght));
-
-                        if (_fighters[0].CurrentHelth <= 0 && _fighters[1].CurrentHelth <= 0)
-                            Console.WriteLine("Ничья!! Противника пали одновременно.");
-                        else if (_fighters[0].CurrentHelth <= 0)
-                            Console.WriteLine($"Победил {_fighters[1].TypeFighters}.");
-                        else
-                            Console.WriteLine($"Победил {_fighters[0].TypeFighters}.");
-
-                        Console.WriteLine(new string(FormatOutput.Delimeter, FormatOutput.DelimeterLenght));
-                    }
 
                     Console.ReadKey(true);
                 }
+
+                ShowWinner();
             }
             else
             {
@@ -202,27 +155,43 @@ namespace L45_gladiatorFights
             }
         }
 
+        private void ShowWinner()
+        {
+            Console.WriteLine(new string(_delimeter, _delimeterLenght));
+
+            if (_selectedFighters[0].CurrentHelth <= 0 && _selectedFighters[1].CurrentHelth <= 0)
+                Console.WriteLine("Ничья!! Противники пали одновременно.");
+            else if (_selectedFighters[0].CurrentHelth <= 0)
+                Console.WriteLine($"Победил {_selectedFighters[1].TypeFighters}.");
+            else
+                Console.WriteLine($"Победил {_selectedFighters[0].TypeFighters}.");
+
+            Console.WriteLine(new string(_delimeter, _delimeterLenght));
+        }
+
         private void ShowMenu()
         {
             Console.Clear();
-            Console.WriteLine($"Выберите 2х бойцов для сражения на арене.\nПосле выбора выберите пункт \"Начать" +
-                              $" сражение\".\n" + new string(FormatOutput.Delimeter, FormatOutput.DelimeterLenght));
-            Console.WriteLine($"{CommantSelectMage} - Выбрать мага.\n{CommantSelectWarrior} - Выбрать война.\n" +
-                              $"{CommantSelectBarbarian} - Выбрать варвара.\n{CommantSelectPaladin} - Выбрать " +
-                              $"паладина.\n{CommantSelectArcher} - Выбрать лучника.\n{CommandStartFight} - " +
-                              $"Начать сражение.\n{CommantExit} - Выйти из программы.\n" +
-                              new string(FormatOutput.Delimeter, FormatOutput.DelimeterLenght));
-            Console.WriteLine($"Выбрано бойцов: {_fighters.Count}\n" + new string(FormatOutput.Delimeter, FormatOutput.DelimeterLenght));
+            Console.WriteLine($"Выберите 2х бойцов для сражения на арене.\n" + new string(_delimeter, _delimeterLenght));
+            Console.WriteLine($"{CommandSelectFighters} - Выбрать бойцов.\n{CommandStartFight} - " +
+                              $"Начать сражение.\n{CommandExit} - Выйти из программы.\n" +
+                              new string(_delimeter, _delimeterLenght));
+            Console.WriteLine($"Выбрано бойцов: {_selectedFighters.Count}\n" + new string(_delimeter, _delimeterLenght));
+        }
+
+        private void ShowError()
+        {
+            Console.WriteLine("\nВы ввели некорректное значение.");
         }
     }
 
-    class Fighter
+    abstract class Fighter
     {
         protected int MaxHealth;
         protected int Damage;
         protected int Armor;
 
-        public Fighter(TypeFighters type, int helthPoint, int damage, int armor)
+        public Fighter(string type, int helthPoint, int damage, int armor)
         {
             TypeFighters = type;
             CurrentHelth = helthPoint;
@@ -231,7 +200,7 @@ namespace L45_gladiatorFights
             Armor = armor;
         }
 
-        public TypeFighters TypeFighters { get; protected set; }
+        public string TypeFighters { get; protected set; }
         public int CurrentHelth { get; protected set; }
 
         public virtual void SetDamage(int damage)
@@ -245,10 +214,7 @@ namespace L45_gladiatorFights
                 CurrentHelth = 0;
         }
 
-        public virtual void Attack(Fighter enemy)
-        {
-            Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
-        }
+        public abstract void Attack(Fighter enemy);
     }
 
     class Mage : Fighter
@@ -257,7 +223,7 @@ namespace L45_gladiatorFights
         private int _shieldPoint;
         private Skill _skill;
 
-        public Mage(TypeFighters type, int helthPoint, int damage, int armor, int manaPoint) : base(type, helthPoint, damage, armor)
+        public Mage(string type, int helthPoint, int damage, int armor, int manaPoint) : base(type, helthPoint, damage, armor)
         {
             _skill = new Skill("Energy Shield", 10, 30);
             _manaPoint = manaPoint;
@@ -291,7 +257,7 @@ namespace L45_gladiatorFights
             }
             else
             {
-                base.Attack(enemy);
+                Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
                 enemy.SetDamage(Damage);
             }
         }
@@ -302,7 +268,7 @@ namespace L45_gladiatorFights
         private int _timeSkill;
         private Skill _skill;
 
-        public Warior(TypeFighters type, int helthPoint, int damage, int armor) : base(type, helthPoint, damage, armor)
+        public Warior(string type, int helthPoint, int damage, int armor) : base(type, helthPoint, damage, armor)
         {
             _skill = new Skill("Fortify", 3, 20);
         }
@@ -333,7 +299,7 @@ namespace L45_gladiatorFights
             }
             else
             {
-                base.Attack(enemy);
+                Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
                 enemy.SetDamage(Damage);
             }
         }
@@ -345,7 +311,7 @@ namespace L45_gladiatorFights
         private int _percentageDamageAbsorbed;
         private Skill _skill;
 
-        public Barbarian(TypeFighters type, int helthPoint, int damage, int armor, int percentageDamageAbsorbed) : base(type, helthPoint, damage, armor)
+        public Barbarian(string type, int helthPoint, int damage, int armor, int percentageDamageAbsorbed) : base(type, helthPoint, damage, armor)
         {
             _skill = new Skill("Rage", 10, 25);
             _percentageDamageAbsorbed = percentageDamageAbsorbed;
@@ -371,7 +337,7 @@ namespace L45_gladiatorFights
 
             if (_skill.OnActive)
             {
-                base.Attack(enemy);
+                Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
                 enemy.SetDamage(Damage);
                 Armor += _skill.Cost;
                 Damage -= _skill.Power;
@@ -379,7 +345,7 @@ namespace L45_gladiatorFights
             }
             else
             {
-                base.Attack(enemy);
+                Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
                 enemy.SetDamage(Damage);
             }
         }
@@ -390,7 +356,7 @@ namespace L45_gladiatorFights
         private int _faith;
         private Skill _skill;
 
-        public Paladin(TypeFighters type, int helthPoint, int damage, int armor, int faith) : base(type, helthPoint, damage, armor)
+        public Paladin(string type, int helthPoint, int damage, int armor, int faith) : base(type, helthPoint, damage, armor)
         {
             _skill = new Skill("Heal", 10, 50);
             _faith = faith;
@@ -411,7 +377,7 @@ namespace L45_gladiatorFights
             }
             else
             {
-                base.Attack(enemy);
+                Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
                 enemy.SetDamage(Damage);
             }
         }
@@ -423,7 +389,7 @@ namespace L45_gladiatorFights
         private int _dodgeChance;
         private int _ammunition;
 
-        public Archer(TypeFighters type, int helthPoint, int damage, int armor, int dodgeChance) : base(type, helthPoint, damage, armor)
+        public Archer(string type, int helthPoint, int damage, int armor, int dodgeChance) : base(type, helthPoint, damage, armor)
         {
             _dodgeChance = dodgeChance;
             _ammunition = _random.Next(30, 100);
@@ -446,7 +412,7 @@ namespace L45_gladiatorFights
                 Damage /= 2;
             }
 
-            base.Attack(enemy);
+            Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
             enemy.SetDamage(Damage);
         }
     }
@@ -467,12 +433,45 @@ namespace L45_gladiatorFights
         public bool OnActive { get; set; }
     }
 
-    internal enum TypeFighters
+    abstract class FighterCreator
     {
-        Mage = 1,
-        Warior = 2,
-        Barbarian = 3,
-        Paladin = 4,
-        Archer = 5,
+        public abstract Fighter Create();
+
+        public abstract string GetTypeName();
+    }
+
+    class FighterCreatorMage : FighterCreator
+    {
+        public override Fighter Create() => new Mage(GetTypeName(), 200, 35, 0, 40);
+
+        public override string GetTypeName() => "Mage";
+    }
+
+    class FighterCreatorWarior : FighterCreator
+    {
+        public override Fighter Create() => new Warior(GetTypeName(), 350, 15, 15);
+
+        public override string GetTypeName() => "Warior";
+    }
+
+    class FighterCreatorBarbarian : FighterCreator
+    {
+        public override Fighter Create() => new Barbarian(GetTypeName(), 400, 25, 7, 30);
+
+        public override string GetTypeName() => "Barbarian";
+    }
+
+    class FighterCreatorPaladin : FighterCreator
+    {
+        public override Fighter Create() => new Paladin(GetTypeName(), 300, 20, 10, 35);
+
+        public override string GetTypeName() => "Paladin";
+    }
+
+    class FighterCreatorArcher : FighterCreator
+    {
+        public override Fighter Create() => new Archer(GetTypeName(), 275, 27, 5, 25);
+
+        public override string GetTypeName() => "Archer";
     }
 }
