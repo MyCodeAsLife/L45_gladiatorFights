@@ -19,6 +19,7 @@ namespace L45_gladiatorFights
         private const int CommandStartFight = 2;
         private const int CommandExit = 3;
 
+        private int _maxFitersCount = 2;
         private int _delimeterLenght = 50;
         private char _delimeter = '=';
 
@@ -78,7 +79,7 @@ namespace L45_gladiatorFights
 
         private void SelectFighters()
         {
-            if (_selectedFighters.Count < 2)
+            if (_selectedFighters.Count < _maxFitersCount)
             {
                 AddFiter();
                 AddFiter();
@@ -92,7 +93,7 @@ namespace L45_gladiatorFights
                 {
                     fighterNumber--;
 
-                    if (fighterNumber < 2 && fighterNumber >= 0)
+                    if (fighterNumber < _maxFitersCount && fighterNumber >= 0)
                     {
                         _selectedFighters.RemoveAt(fighterNumber);
                         AddFiter();
@@ -135,7 +136,7 @@ namespace L45_gladiatorFights
 
         private void Fight()
         {
-            if (_selectedFighters.Count == 2)
+            if (_selectedFighters.Count == _maxFitersCount)
             {
                 int numberOfRound = 1;
                 bool isFight = true;
@@ -145,15 +146,15 @@ namespace L45_gladiatorFights
                 while (isFight)
                 {
                     Console.WriteLine(new string(_delimeter, _delimeterLenght) + $"\nРаунд №{numberOfRound}.");
-                    Console.WriteLine($"{_selectedFighters[0].TypeFighters} - Здоровье: {_selectedFighters[0].CurrentHelth}\t" +
-                                      $"{_selectedFighters[1].TypeFighters} - Здоровье: {_selectedFighters[1].CurrentHelth}");
+                    Console.WriteLine($"{_selectedFighters[0].TypeFighters} - Здоровье: {_selectedFighters[0].CurrentHealth}\t" +
+                                      $"{_selectedFighters[1].TypeFighters} - Здоровье: {_selectedFighters[1].CurrentHealth}");
 
                     _selectedFighters[0].Attack(_selectedFighters[1]);
                     _selectedFighters[1].Attack(_selectedFighters[0]);
 
                     numberOfRound++;
 
-                    if (_selectedFighters[0].CurrentHelth <= 0 || _selectedFighters[1].CurrentHelth <= 0)
+                    if (_selectedFighters[0].CurrentHealth <= 0 || _selectedFighters[1].CurrentHealth <= 0)
                         isFight = false;
 
                     Console.ReadKey(true);
@@ -171,9 +172,9 @@ namespace L45_gladiatorFights
         {
             Console.WriteLine(new string(_delimeter, _delimeterLenght));
 
-            if (_selectedFighters[0].CurrentHelth <= 0 && _selectedFighters[1].CurrentHelth <= 0)
+            if (_selectedFighters[0].CurrentHealth <= 0 && _selectedFighters[1].CurrentHealth <= 0)
                 Console.WriteLine("Ничья!! Противники пали одновременно.");
-            else if (_selectedFighters[0].CurrentHelth <= 0)
+            else if (_selectedFighters[0].CurrentHealth <= 0)
                 Console.WriteLine($"Победил {_selectedFighters[1].TypeFighters}.");
             else
                 Console.WriteLine($"Победил {_selectedFighters[0].TypeFighters}.");
@@ -206,24 +207,24 @@ namespace L45_gladiatorFights
         public Fighter(string type, int helthPoint, int damage, int armor)
         {
             TypeFighters = type;
-            CurrentHelth = helthPoint;
+            CurrentHealth = helthPoint;
             MaxHealth = helthPoint;
             Damage = damage;
             Armor = armor;
         }
 
         public string TypeFighters { get; protected set; }
-        public int CurrentHelth { get; protected set; }
+        public int CurrentHealth { get; protected set; }
 
-        public virtual void SetDamage(int damage)
+        public virtual void TakeDamage(int damage)
         {
             int calculateDamage = damage - Armor;
             calculateDamage = (calculateDamage < 0 ? 0 : calculateDamage);
-            CurrentHelth -= calculateDamage;
+            CurrentHealth -= calculateDamage;
             Console.WriteLine($"получает: {calculateDamage} ед. урона.");
 
-            if (CurrentHelth < 0)
-                CurrentHelth = 0;
+            if (CurrentHealth < 0)
+                CurrentHealth = 0;
         }
 
         public abstract void Attack(Fighter enemy);
@@ -241,13 +242,13 @@ namespace L45_gladiatorFights
             _manaPoint = manaPoint;
         }
 
-        public override void SetDamage(int damage)
+        public override void TakeDamage(int damage)
         {
             int remainingDamage = damage - _shieldPoint;
             _shieldPoint -= damage;
 
             if (remainingDamage > 0)
-                base.SetDamage(remainingDamage);
+                base.TakeDamage(remainingDamage);
             else
                 Console.WriteLine($"поглощает энерго-щитом урон, у щита остается {_shieldPoint} ед. прочности.");
 
@@ -270,7 +271,7 @@ namespace L45_gladiatorFights
             else
             {
                 Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
-                enemy.SetDamage(Damage);
+                enemy.TakeDamage(Damage);
             }
         }
     }
@@ -285,9 +286,9 @@ namespace L45_gladiatorFights
             _skill = new Skill("Fortify", 3, 20);
         }
 
-        public override void SetDamage(int damage)
+        public override void TakeDamage(int damage)
         {
-            base.SetDamage(damage);
+            base.TakeDamage(damage);
         }
 
         public override void Attack(Fighter enemy)
@@ -312,7 +313,7 @@ namespace L45_gladiatorFights
             else
             {
                 Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
-                enemy.SetDamage(Damage);
+                enemy.TakeDamage(Damage);
             }
         }
     }
@@ -329,11 +330,11 @@ namespace L45_gladiatorFights
             _percentageDamageAbsorbed = percentageDamageAbsorbed;
         }
 
-        public override void SetDamage(int damage)
+        public override void TakeDamage(int damage)
         {
             int damageAbsorbed = (int)(_percentageDamageAbsorbed * ((float)damage / 100));
             _rage += damageAbsorbed;
-            base.SetDamage(damage - damageAbsorbed);
+            base.TakeDamage(damage - damageAbsorbed);
         }
 
         public override void Attack(Fighter enemy)
@@ -350,7 +351,7 @@ namespace L45_gladiatorFights
             if (_skill.OnActive)
             {
                 Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
-                enemy.SetDamage(Damage);
+                enemy.TakeDamage(Damage);
                 Armor += _skill.Cost;
                 Damage -= _skill.Power;
                 _skill.OnActive = false;
@@ -358,7 +359,7 @@ namespace L45_gladiatorFights
             else
             {
                 Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
-                enemy.SetDamage(Damage);
+                enemy.TakeDamage(Damage);
             }
         }
     }
@@ -374,23 +375,25 @@ namespace L45_gladiatorFights
             _faith = faith;
         }
 
-        public override void SetDamage(int damage)
+        public override void TakeDamage(int damage)
         {
-            base.SetDamage(damage);
+            base.TakeDamage(damage);
         }
 
         public override void Attack(Fighter enemy)
         {
-            if (_faith >= _skill.Cost && CurrentHelth < (MaxHealth / 2))
+            int halfHealth = MaxHealth / 2;
+
+            if (_faith >= _skill.Cost && CurrentHealth < halfHealth)
             {
-                CurrentHelth += _skill.Power;
+                CurrentHealth += _skill.Power;
                 _faith -= _skill.Cost;
                 Console.WriteLine($"Паладин использует {_skill.Name} и лечит себя на {_skill.Power} едениц.");
             }
             else
             {
                 Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
-                enemy.SetDamage(Damage);
+                enemy.TakeDamage(Damage);
             }
         }
     }
@@ -407,10 +410,10 @@ namespace L45_gladiatorFights
             _ammunition = _random.Next(30, 100);
         }
 
-        public override void SetDamage(int damage)
+        public override void TakeDamage(int damage)
         {
             if (_random.Next(100) > _dodgeChance)
-                base.SetDamage(damage);
+                base.TakeDamage(damage);
             else
                 Console.WriteLine("Лучник увернулся от удара");
         }
@@ -425,7 +428,7 @@ namespace L45_gladiatorFights
             }
 
             Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
-            enemy.SetDamage(Damage);
+            enemy.TakeDamage(Damage);
         }
     }
 
