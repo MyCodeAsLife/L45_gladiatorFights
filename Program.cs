@@ -50,7 +50,7 @@ namespace L45_gladiatorFights
                     switch (menuNumber)
                     {
                         case CommandSelectFighters:
-                            SelectFighter();
+                            SelectFighters();
                             break;
 
                         case CommandStartFight:
@@ -76,33 +76,16 @@ namespace L45_gladiatorFights
             }
         }
 
-        private void SelectFighter()                // Добавить выбор сразу 2х бойцов
+        private void SelectFighters()
         {
-            Console.Clear();
-
             if (_selectedFighters.Count < 2)
             {
-                for (int i = 0; i < _listFighters.Count; i++)
-                    Console.WriteLine($"{i + 1} - {_listFighters[i].GetTypeName()}");
-
-                Console.Write("Ведите номер бойца: ");
-
-                if (int.TryParse(Console.ReadLine(), out int fighterNumber))
-                {
-                    fighterNumber--;
-
-                    if (fighterNumber < _listFighters.Count || fighterNumber >= 0)
-                        _selectedFighters.Add(_listFighters[fighterNumber].Create());
-                    else
-                        ShowError();
-                }
-                else
-                {
-                    ShowError();
-                }
+                AddFiter();
+                AddFiter();
             }
             else if (_selectedFighters.Count > 1)
             {
+                Console.Clear();
                 Console.WriteLine($"Какого бойца вы хотите заменить?\n1 - {_selectedFighters[0].TypeFighters}\n2 - {_selectedFighters[1].TypeFighters}");
 
                 if (int.TryParse(Console.ReadLine(), out int fighterNumber))
@@ -110,14 +93,43 @@ namespace L45_gladiatorFights
                     fighterNumber--;
 
                     if (fighterNumber < 2 && fighterNumber >= 0)
-                        _selectedFighters[fighterNumber] = _listFighters[fighterNumber].Create();
+                    {
+                        _selectedFighters.RemoveAt(fighterNumber);
+                        AddFiter();
+                    }
                     else
+                    {
                         ShowError();
+                    }
                 }
                 else
                 {
                     ShowError();
                 }
+            }
+        }
+
+        private void AddFiter()
+        {
+            Console.Clear();
+
+            for (int i = 0; i < _listFighters.Count; i++)
+                Console.WriteLine($"{i + 1} - {_listFighters[i].GetTypeName()}");
+
+            Console.Write("Введите номер бойца: ");
+
+            if (int.TryParse(Console.ReadLine(), out int fighterNumber))
+            {
+                fighterNumber--;
+
+                if (fighterNumber < _listFighters.Count || fighterNumber >= 0)
+                    _selectedFighters.Add(_listFighters[fighterNumber].Create());
+                else
+                    ShowError();
+            }
+            else
+            {
+                ShowError();
             }
         }
 
