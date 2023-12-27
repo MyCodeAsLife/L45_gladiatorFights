@@ -401,13 +401,16 @@ namespace L45_gladiatorFights
     class Archer : Fighter
     {
         private Random _random = new Random();
+
+        private int _maxAmmunitionCount = 100;
+        private int _minAmmunitionCount = 30;
+        private int _currentAmmunition;
         private int _dodgeChance;
-        private int _ammunition;
 
         public Archer(string type, int helthPoint, int damage, int armor, int dodgeChance) : base(type, helthPoint, damage, armor)
         {
             _dodgeChance = dodgeChance;
-            _ammunition = _random.Next(30, 100);
+            _currentAmmunition = _random.Next(_minAmmunitionCount, _maxAmmunitionCount);
         }
 
         public override void TakeDamage(int damage)
@@ -421,7 +424,7 @@ namespace L45_gladiatorFights
         public override void Attack(Fighter enemy)
         {
 
-            if (_ammunition <= 0)
+            if (_currentAmmunition <= 0)
             {
                 _dodgeChance = 0;
                 Damage /= 2;
