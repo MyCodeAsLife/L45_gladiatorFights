@@ -15,9 +15,9 @@ namespace L45_gladiatorFights
 
     class Arena
     {
-        private const int CommandSelectFighters = 1;
-        private const int CommandStartFight = 2;
-        private const int CommandExit = 3;
+        private const string CommandSelectFighters = "1";
+        private const string CommandStartFight = "2";
+        private const string CommandExit = "3";
 
         private int _maxFitersCount = 2;
         private int _delimeterLenght = 50;
@@ -43,33 +43,26 @@ namespace L45_gladiatorFights
             {
                 ShowMenu();
                 Console.Write("Выберите пункт меню: ");
+                string menuNumber = Console.ReadLine();
+                Console.Clear();
 
-                if (int.TryParse(Console.ReadLine(), out int menuNumber))
+                switch (menuNumber)
                 {
-                    Console.Clear();
+                    case CommandSelectFighters:
+                        SelectFighters();
+                        break;
 
-                    switch (menuNumber)
-                    {
-                        case CommandSelectFighters:
-                            SelectFighters();
-                            break;
+                    case CommandStartFight:
+                        Fight();
+                        break;
 
-                        case CommandStartFight:
-                            Fight();
-                            break;
+                    case CommandExit:
+                        isOpen = false;
+                        continue;
 
-                        case CommandExit:
-                            isOpen = false;
-                            continue;
-
-                        default:
-                            ShowError();
-                            break;
-                    }
-                }
-                else
-                {
-                    ShowError();
+                    default:
+                        ShowError();
+                        break;
                 }
 
                 Console.WriteLine("Для возврашения в меню, нажмите любую клавишу...");
@@ -87,7 +80,10 @@ namespace L45_gladiatorFights
             else if (_selectedFighters.Count > 1)
             {
                 Console.Clear();
-                Console.WriteLine($"Какого бойца вы хотите заменить?\n1 - {_selectedFighters[0].TypeFighters}\n2 - {_selectedFighters[1].TypeFighters}");
+                Console.WriteLine($"Какого бойца вы хотите заменить?");
+
+                for (int i = 0; i < _selectedFighters.Count; i++)
+                    Console.Write($"{i + 1} - {_selectedFighters[i].TypeFighters}\n");
 
                 if (int.TryParse(Console.ReadLine(), out int fighterNumber))
                 {
@@ -146,8 +142,11 @@ namespace L45_gladiatorFights
                 while (isFight)
                 {
                     Console.WriteLine(new string(_delimeter, _delimeterLenght) + $"\nРаунд №{numberOfRound}.");
-                    Console.WriteLine($"{_selectedFighters[0].TypeFighters} - Здоровье: {_selectedFighters[0].CurrentHealth}\t" +
-                                      $"{_selectedFighters[1].TypeFighters} - Здоровье: {_selectedFighters[1].CurrentHealth}");
+
+                    foreach (var fighter in _selectedFighters)
+                        Console.Write($"{fighter.TypeFighters} - Здоровье: {fighter.CurrentHealth}\t");
+
+                    Console.WriteLine();
 
                     _selectedFighters[0].Attack(_selectedFighters[1]);
                     _selectedFighters[1].Attack(_selectedFighters[0]);
@@ -423,11 +422,11 @@ namespace L45_gladiatorFights
 
         public override void Attack(Fighter enemy)
         {
-
             if (_currentAmmunition <= 0)
             {
                 _dodgeChance = 0;
-                Damage /= 2;
+                float half = 0.5f;
+                Damage = (int)(Damage * half);
             }
 
             Console.Write($"{TypeFighters} - Атакует.\t{enemy.TypeFighters} - ");
