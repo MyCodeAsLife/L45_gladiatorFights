@@ -81,8 +81,8 @@ namespace L45_gladiatorFights
         {
             if (_selectedFighters.Count < _maxFitersCount)
             {
-                AddFiter();
-                AddFiter();
+                ChooseFighter();
+                ChooseFighter();
             }
             else if (_selectedFighters.Count > 1)
             {
@@ -96,7 +96,7 @@ namespace L45_gladiatorFights
                     if (fighterNumber < _maxFitersCount && fighterNumber >= 0)
                     {
                         _selectedFighters.RemoveAt(fighterNumber);
-                        AddFiter();
+                        ChooseFighter();
                     }
                     else
                     {
@@ -110,7 +110,7 @@ namespace L45_gladiatorFights
             }
         }
 
-        private void AddFiter()
+        private void ChooseFighter()
         {
             Console.Clear();
 
