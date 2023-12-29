@@ -381,7 +381,8 @@ namespace L45_gladiatorFights
 
         public override void Attack(Fighter enemy)
         {
-            int halfHealth = MaxHealth / 2;
+            float half = 0.5f;
+            int halfHealth = (int)(MaxHealth * half);
 
             if (_faith >= _skill.Cost && CurrentHealth < halfHealth)
             {
